@@ -1,4 +1,5 @@
-# Ignore Unity-generated folders
+
+# Unity generated files
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
@@ -7,25 +8,41 @@
 [Ll]ogs/
 [Mm]emoryCaptures/
 
-# Ignore IDE-specific files
-.vs/
-.idea/
-.vscode/
+# Build artifacts
+*.apk
+*.exe
+*.app
+*.ipa
+*.xcodeproj
 
-# Ignore Visual Studio files
+# User-specific files
+UserSettings/
+[Aa]ssets/Plugins/Editor/JetBrains*
+[Aa]ssets/Plugins/Editor/VisualStudio*
+
+# IDE-specific files
+.idea/
 *.csproj
-*.sln
-*.userprefs
+*.unityproj
 *.pidb
 *.suo
-*.booproj
-*.svd
+*.user
+*.userprefs
+*.dll
+*.exe
+*.pdb
+*.mdb
+.vs/
 
-# Ignore Unity-specific generated meta files
-*.pidb.meta
-*.pdb.meta
+# macOS
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
 
-# Ignore Build artifacts
-*.apk
-*.unitypackage
+# Windows
+Thumbs.db
 
+# Version control
+.git/
+.svn/
