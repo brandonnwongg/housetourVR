@@ -46,3 +46,8 @@ Thumbs.db
 # Version control
 .git/
 .svn/
+
+Test.app/
+*.dylib
+*.resource
+*.resS
