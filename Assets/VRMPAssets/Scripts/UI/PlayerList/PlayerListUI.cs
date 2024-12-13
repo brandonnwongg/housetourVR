@@ -8,7 +8,7 @@ namespace XRMultiplayer
     {
         [SerializeField] TMP_Text m_PlayerCountText;
         [SerializeField] Transform m_ConnectedPlayersViewportContentTransform;
-        [SerializeField] GameObject m_PlayerSlotPrefab;
+
 
         [SerializeField] bool m_AutoInitializeCallbacks = true;
 
@@ -35,7 +35,7 @@ namespace XRMultiplayer
 
         public void OnDestroy()
         {
-            XRINetworkGameManager.Instance.playerStateChanged -= ConnectedPlayerStateChange;
+            //XRINetworkGameManager.Instance.playerStateChanged -= ConnectedPlayerStateChange;
             XRINetworkGameManager.Connected.Unsubscribe(OnConnected);
         }
 
@@ -53,7 +53,7 @@ namespace XRMultiplayer
                 Destroy(t.gameObject);
             }
 
-            XRINetworkGameManager.Instance.playerStateChanged += ConnectedPlayerStateChange;
+            // XRINetworkGameManager.Instance.playerStateChanged += ConnectedPlayerStateChange;
             XRINetworkGameManager.Connected.Subscribe(OnConnected);
         }
 
@@ -70,7 +70,7 @@ namespace XRMultiplayer
             }
         }
 
-        void ConnectedPlayerStateChange(ulong playerId, bool connected)
+        /*void ConnectedPlayerStateChange(ulong playerId, bool connected)
         {
             if (connected)
             {
@@ -80,7 +80,7 @@ namespace XRMultiplayer
             {
                 RemovePlayerSlotUI(playerId);
             }
-        }
+        }*/
 
         void RemovePlayerSlotUI(ulong playerId)
         {
@@ -102,30 +102,31 @@ namespace XRMultiplayer
             }
         }
 
-        void SetupPlayerSlotUI(ulong playerId)
-        {
-            PlayerSlot slot = Instantiate(m_PlayerSlotPrefab, m_ConnectedPlayersViewportContentTransform).GetComponent<PlayerSlot>();
-            slot.playerID = playerId;
+        /*  void SetupPlayerSlotUI(ulong playerId)
+          {
+              PlayerSlot slot = Instantiate(m_PlayerSlotPrefab, m_ConnectedPlayersViewportContentTransform).GetComponent<PlayerSlot>();
+              slot.playerID = playerId;
 
-            if (XRINetworkGameManager.Instance.GetPlayerByID(playerId, out XRINetworkPlayer player))
-            {
-                if (m_PlayerDictionary.TryAdd(slot, player))
-                {
-                    slot.Setup(player);
+              if (XRINetworkGameManager.Instance.GetPlayerByID(playerId, out XRINetworkPlayer player))
+              {
+                  if (m_PlayerDictionary.TryAdd(slot, player))
+                  {
+                      slot.Setup(player);
 
-                    if (player.IsLocalPlayer)
-                    {
-                        slot.playerSlotName.text += " (You)";
-                    }
-                    slot.playerIconImage.color = player.playerColor;
+                      if (player.IsLocalPlayer)
+                      {
+                          slot.playerSlotName.text += " (You)";
+                      }
+                      slot.playerIconImage.color = player.playerColor;
 
-                    m_PlayerCountText.text = $"{m_PlayerDictionary.Keys.Count}/{XRINetworkGameManager.Instance.lobbyManager.connectedLobby.MaxPlayers}";
-                }
-            }
-            else
-            {
-                Utils.Log($"Player with id {playerId} is null. This is a bug.", 2);
-            }
-        }
+                      m_PlayerCountText.text = $"{m_PlayerDictionary.Keys.Count}/{XRINetworkGameManager.Instance.lobbyManager.connectedLobby.MaxPlayers}";
+                  }
+              }
+              else
+              {
+                  Utils.Log($"Player with id {playerId} is null. This is a bug.", 2);
+              }
+          }
+      }*/
     }
 }

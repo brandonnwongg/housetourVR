@@ -17,8 +17,6 @@ namespace XRMultiplayer
         /// </summary>
         [SerializeField, Tooltip("Default name for the player")] string m_DefaultPlayerName = "Unity Creator";
         [SerializeField] TMP_Text m_PlayerNameText;
-        [SerializeField] TMP_Text m_PlayerInitialText;
-        [SerializeField] Image[] m_PlayerColorIcons;
         [SerializeField] Image m_VolumeIndicator;
         [SerializeField] Image m_MicIcon;
         [SerializeField] Sprite m_MutedSprite;
@@ -75,16 +73,12 @@ namespace XRMultiplayer
             }
 
             m_PlayerNameText.text = name;
-            m_PlayerInitialText.text = name.Substring(0, 1);
             m_PlayerNameText.rectTransform.sizeDelta = new Vector2(m_PlayerNameText.preferredWidth * .25f, m_PlayerNameText.rectTransform.sizeDelta.y);
         }
 
         void SetPlayerColor(Color color)
         {
-            foreach (var c in m_PlayerColorIcons)
-            {
-                c.color = color;
-            }
+  
         }
 
         void UpdateMicIcon(float amp)

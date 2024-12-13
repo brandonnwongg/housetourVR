@@ -7,8 +7,8 @@ namespace XRMultiplayer
 {
     public class PlayerSlot : MonoBehaviour
     {
-        public TMP_Text playerSlotName;
-        public TMP_Text playerInitial;
+       // public TMP_Text playerSlotName;
+        //public TMP_Text playerInitial;
         public Image playerIconImage;
 
         [Header("Mic Button")]
@@ -67,8 +67,8 @@ namespace XRMultiplayer
                 {
                     playerName += " (Host)";
                 }
-                playerSlotName.text = playerName;
-                playerInitial.text = newName.Substring(0, 1);
+                //playerSlotName.text = playerName;
+                //playerInitial.text = newName.Substring(0, 1);
             }
         }
 

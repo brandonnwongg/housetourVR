@@ -1390,6 +1390,11 @@ PrefabInstance:
       propertyPath: m_HideKeyboardOnInputFieldClose
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 683066086641542815, guid: 17bafa47335025b4fa8a0e3de781e2d8,
+        type: 3}
+      propertyPath: m_CameraTransform
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 1808051040145743646, guid: 17bafa47335025b4fa8a0e3de781e2d8,
         type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -2489,7 +2494,7 @@ PrefabInstance:
     - target: {fileID: 6903521437329858879, guid: 0acfb0657964fd84b83772d5e4d59846,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0.000034934896
+      value: 0.0027156156
       objectReference: {fileID: 0}
     - target: {fileID: 7123742558807028470, guid: 0acfb0657964fd84b83772d5e4d59846,
         type: 3}
@@ -2554,7 +2559,7 @@ PrefabInstance:
     - target: {fileID: 8964297880567033991, guid: 0acfb0657964fd84b83772d5e4d59846,
         type: 3}
       propertyPath: m_Size
-      value: 0.9999841
+      value: 0.9999897
       objectReference: {fileID: 0}
     - target: {fileID: 8964297880567033991, guid: 0acfb0657964fd84b83772d5e4d59846,
         type: 3}

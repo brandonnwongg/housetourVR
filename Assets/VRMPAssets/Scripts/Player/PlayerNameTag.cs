@@ -11,7 +11,7 @@ namespace XRMultiplayer
 
         [SerializeField] bool m_WorldUp;
         [SerializeField] TMP_Text m_NameTagText;
-        [SerializeField] TMP_Text m_InitialsText;
+        //[SerializeField] TMP_Text m_InitialsText;
         [SerializeField] Image m_ColoredImage;
         [SerializeField] float m_NameTextScale = .25f;
 
@@ -163,7 +163,7 @@ namespace XRMultiplayer
             if (string.IsNullOrEmpty(newName)) return;
 
             m_NameTagText.text = newName;
-            m_InitialsText.text = newName.Substring(0, 1);
+            //m_InitialsText.text = newName.Substring(0, 1);
             UpdateNameTagSize();
         }
 
