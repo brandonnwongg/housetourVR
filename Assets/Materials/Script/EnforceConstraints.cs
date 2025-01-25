@@ -6,43 +6,58 @@ public class EnforceConstraints : MonoBehaviour
 {
     private Rigidbody rb;
     private XRGrabInteractable grabInteractable;
+    private bool isReleased = false; // Track if the object was released
 
-    public float groundY = 0.55f; // The Y position of the ground
-    public bool useGroundYClamping = true; // Optionally use fixed ground Y clamping
+    public float velocityThreshold = 0.1f; // Threshold below which the object is considered "settled"
+    public float groundThreshold = 0.02f; // Small height above ground to consider "settled"
 
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
         grabInteractable = GetComponent<XRGrabInteractable>();
 
+        // Ensure Rigidbody starts fully frozen
+        if (rb != null)
+        {
+            rb.constraints = RigidbodyConstraints.FreezeAll; // Freeze all position and rotation
+            rb.useGravity = true; // Enable gravity
+        }
+
         // Listen to grab and release events
-        grabInteractable.selectEntered.AddListener(OnGrabbed);
-        grabInteractable.selectExited.AddListener(OnReleased);
+        if (grabInteractable != null)
+        {
+            grabInteractable.selectEntered.AddListener(OnGrabbed);
+            grabInteractable.selectExited.AddListener(OnReleased);
+        }
+        else
+        {
+            Debug.LogError("XRGrabInteractable component is missing on " + gameObject.name);
+        }
     }
 
     void OnDestroy()
     {
         // Unsubscribe from events to avoid memory leaks
-        grabInteractable.selectEntered.RemoveListener(OnGrabbed);
-        grabInteractable.selectExited.RemoveListener(OnReleased);
+        if (grabInteractable != null)
+        {
+            grabInteractable.selectEntered.RemoveListener(OnGrabbed);
+            grabInteractable.selectExited.RemoveListener(OnReleased);
+        }
     }
 
     private void FixedUpdate()
     {
-        if (!grabInteractable.isSelected && rb != null)
+        if (isReleased && rb != null)
         {
-            if (useGroundYClamping)
+            // Only consider the object settled if it's close to the ground and has low velocity
+            if (rb.velocity.magnitude < velocityThreshold && rb.angularVelocity.magnitude < velocityThreshold)
             {
-                // Ensure the object doesn't go below the ground
-                Vector3 position = rb.position;
-                if (position.y < groundY)
+                RaycastHit hit;
+                if (Physics.Raycast(transform.position, Vector3.down, out hit, groundThreshold))
                 {
-                    position.y = groundY;
-                    rb.position = position;
-
-                    // Stop movement to prevent clipping or bouncing
-                    rb.velocity = Vector3.zero;
-                    rb.angularVelocity = Vector3.zero;
+                    // Freeze the object after it has stopped moving and is on the ground
+                    rb.constraints = RigidbodyConstraints.FreezeAll;
+                    isReleased = false; // Reset release state
                 }
             }
         }
@@ -52,9 +67,10 @@ public class EnforceConstraints : MonoBehaviour
     {
         if (rb != null)
         {
-            // Remove constraints to allow free movement
+            // Remove all constraints to allow free movement while being grabbed
             rb.constraints = RigidbodyConstraints.None;
-            rb.useGravity = false; // Disable gravity while being grabbed
+            rb.useGravity = false; // Disable gravity for smoother interaction
+            isReleased = false; // Reset release state
         }
     }
 
@@ -62,26 +78,10 @@ public class EnforceConstraints : MonoBehaviour
     {
         if (rb != null)
         {
-            // Allow the object to fall naturally to the ground
+            // Allow the object to fall naturally
             rb.useGravity = true;
-
-            // Reapply constraints to freeze Y position and rotations when touching the ground
-            rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
-
-            // Optionally, reset the Y position if clamping is enabled
-            if (useGroundYClamping)
-            {
-                Vector3 position = rb.position;
-                if (position.y < groundY)
-                {
-                    position.y = groundY;
-                    rb.position = position;
-
-                    // Reset velocities to stop movement
-                    rb.velocity = Vector3.zero;
-                    rb.angularVelocity = Vector3.zero;
-                }
-            }
+            rb.constraints = RigidbodyConstraints.None; // Remove all constraints for falling
+            isReleased = true; // Mark as released
         }
     }
 }

@@ -1,18 +1,30 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit.AffordanceSystem;
 
 public class CustomAffordanceHandler : MonoBehaviour
 {
-    // Start is called before the first frame update
+    public Material material; // The material to handle
+    private ShaderPropertyHandler propertyHandler;
+
     void Start()
     {
-        
+        // Initialize the ShaderPropertyHandler
+        propertyHandler = gameObject.AddComponent<ShaderPropertyHandler>();
+        propertyHandler.material = material;
+
+        // Check for '_RimColor' or set to default
+        propertyHandler.SetPropertyColor(Color.red);
     }
 
-    // Update is called once per frame
-    void Update()
+    public void OnAffordanceStateChange()
     {
-        
+        // Update affordance color dynamically
+        propertyHandler.SetPropertyColor(Color.green);
+    }
+
+    public void OnResetAffordance()
+    {
+        // Reset to the default state
+        propertyHandler.ResetToDefault();
     }
 }
