@@ -2,28 +2,36 @@ using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
+/// <summary>
+/// EnforceConstraints is responsible for managing the physics constraints of an object, 
+/// ensuring proper behavior when grabbed and released using XR interactions.
+/// </summary>
 public class EnforceConstraints : MonoBehaviour
 {
     private Rigidbody rb;
     private XRGrabInteractable grabInteractable;
-    private bool isReleased = false; // Track if the object was released
+    private bool isReleased = false; // Tracks whether the object has been released
 
-    public float velocityThreshold = 0.1f; // Threshold below which the object is considered "settled"
-    public float groundThreshold = 0.02f; // Small height above ground to consider "settled"
+    public float velocityThreshold = 0.1f; // Threshold for detecting when the object has settled
+    public float groundThreshold = 0.02f; // Distance from the ground to consider as settled
 
+    /// <summary>
+    /// Called when the object is first initialized.
+    /// Ensures that the object starts with appropriate physics constraints.
+    /// </summary>
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
         grabInteractable = GetComponent<XRGrabInteractable>();
 
-        // Ensure Rigidbody starts fully frozen
+        // Ensure the Rigidbody starts with constraints and gravity enabled
         if (rb != null)
         {
             rb.constraints = RigidbodyConstraints.FreezeAll; // Freeze all position and rotation
-            rb.useGravity = true; // Enable gravity
+            rb.useGravity = true; // Enable gravity by default
         }
 
-        // Listen to grab and release events
+        // Listen to grab and release events from XR interaction system
         if (grabInteractable != null)
         {
             grabInteractable.selectEntered.AddListener(OnGrabbed);
@@ -35,9 +43,12 @@ public class EnforceConstraints : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Called when the object is destroyed.
+    /// Unsubscribes from event listeners to prevent memory leaks.
+    /// </summary>
     void OnDestroy()
     {
-        // Unsubscribe from events to avoid memory leaks
         if (grabInteractable != null)
         {
             grabInteractable.selectEntered.RemoveListener(OnGrabbed);
@@ -45,61 +56,72 @@ public class EnforceConstraints : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Runs at a fixed time step and ensures that the object settles properly when released.
+    /// If the object is close to the ground and has minimal movement, it is frozen in place.
+    /// </summary>
     private void FixedUpdate()
     {
         if (isReleased && rb != null)
         {
-            // Only consider the object settled if it's close to the ground and has low velocity
+            // Check if the object's velocity and angular velocity are below the defined threshold
             if (rb.velocity.magnitude < velocityThreshold && rb.angularVelocity.magnitude < velocityThreshold)
             {
                 RaycastHit hit;
+                // Use a raycast to check if the object is near the ground
                 if (Physics.Raycast(transform.position, Vector3.down, out hit, groundThreshold))
                 {
-                    // Freeze the object after it has stopped moving and is on the ground
+                    // Freeze the object to prevent unnecessary physics calculations
                     rb.constraints = RigidbodyConstraints.FreezeAll;
                     isReleased = false; // Reset release state
                 }
             }
         }
     }
-private void OnGrabbed(SelectEnterEventArgs args)
-{
-    if (rb != null)
+
+    /// <summary>
+    /// Called when the object is grabbed using XR interaction.
+    /// Enables free movement by removing constraints and disabling gravity.
+    /// </summary>
+    private void OnGrabbed(SelectEnterEventArgs args)
     {
-        // Allow free movement while grabbed
-        rb.constraints = RigidbodyConstraints.None;
+        if (rb != null)
+        {
+            // Remove all constraints to allow full movement while grabbed
+            rb.constraints = RigidbodyConstraints.None;
 
-        // Disable gravity while grabbed
-        rb.useGravity = false;
+            // Disable gravity for smoother interaction
+            rb.useGravity = false;
 
-        // Reset any existing velocity to avoid unintended motion
-        rb.velocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
+            // Reset velocity to prevent unintended movement after grabbing
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
 
-        // Detach the object from any parent (if needed)
-        transform.SetParent(null);
+            // Detach the object from any parent to allow independent movement
+            transform.SetParent(null);
 
-        Debug.Log($"{gameObject.name} grabbed, gravity disabled.");
+            Debug.Log($"{gameObject.name} grabbed, gravity disabled.");
+        }
     }
-}
 
-
-private void OnReleased(SelectExitEventArgs args)
-{
-    if (rb != null)
+    /// <summary>
+    /// Called when the object is released using XR interaction.
+    /// Re-enables gravity and applies constraints to ensure stability.
+    /// </summary>
+    private void OnReleased(SelectExitEventArgs args)
     {
-        // Re-enable gravity to force the object to fall naturally
-        rb.useGravity = true;
+        if (rb != null)
+        {
+            // Re-enable gravity to allow the object to fall naturally
+            rb.useGravity = true;
 
-        // Remove constraints on position
-        rb.constraints = RigidbodyConstraints.None;
+            // Remove all position constraints
+            rb.constraints = RigidbodyConstraints.None;
 
-        // Optionally, freeze rotation on specific axes for stability
-        rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+            // Apply rotation constraints to prevent excessive spinning
+            rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
 
-        Debug.Log($"{gameObject.name} released, gravity re-enabled.");
+            Debug.Log($"{gameObject.name} released, gravity re-enabled.");
+        }
     }
-}
-
-
 }
