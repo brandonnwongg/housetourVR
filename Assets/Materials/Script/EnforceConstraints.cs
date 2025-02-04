@@ -62,26 +62,44 @@ public class EnforceConstraints : MonoBehaviour
             }
         }
     }
-
-    private void OnGrabbed(SelectEnterEventArgs args)
+private void OnGrabbed(SelectEnterEventArgs args)
+{
+    if (rb != null)
     {
-        if (rb != null)
-        {
-            // Remove all constraints to allow free movement while being grabbed
-            rb.constraints = RigidbodyConstraints.None;
-            rb.useGravity = false; // Disable gravity for smoother interaction
-            isReleased = false; // Reset release state
-        }
-    }
+        // Allow free movement while grabbed
+        rb.constraints = RigidbodyConstraints.None;
 
-    private void OnReleased(SelectExitEventArgs args)
-    {
-        if (rb != null)
-        {
-            // Allow the object to fall naturally
-            rb.useGravity = true;
-            rb.constraints = RigidbodyConstraints.None; // Remove all constraints for falling
-            isReleased = true; // Mark as released
-        }
+        // Disable gravity while grabbed
+        rb.useGravity = false;
+
+        // Reset any existing velocity to avoid unintended motion
+        rb.velocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+
+        // Detach the object from any parent (if needed)
+        transform.SetParent(null);
+
+        Debug.Log($"{gameObject.name} grabbed, gravity disabled.");
     }
+}
+
+
+private void OnReleased(SelectExitEventArgs args)
+{
+    if (rb != null)
+    {
+        // Re-enable gravity to force the object to fall naturally
+        rb.useGravity = true;
+
+        // Remove constraints on position
+        rb.constraints = RigidbodyConstraints.None;
+
+        // Optionally, freeze rotation on specific axes for stability
+        rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+
+        Debug.Log($"{gameObject.name} released, gravity re-enabled.");
+    }
+}
+
+
 }
