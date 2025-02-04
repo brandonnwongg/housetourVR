@@ -17,21 +17,37 @@ public class ChildController : MonoBehaviour
 
         if (grabInteractable == null)
         {
-            Debug.LogError("XRGrabInteractable is missing on the child.");
+            Debug.LogError($"XRGrabInteractable is missing on object: {gameObject.name}, located in the hierarchy: {GetFullHierarchyPath()}");
+            grabInteractable = gameObject.AddComponent<XRGrabInteractable>(); 
         }
 
         if (parentController == null)
         {
-            Debug.LogError("ParentController reference is not assigned.");
+           Debug.LogError($"ParentController reference is not assigned for object: {gameObject.name}, located in the hierarchy: {GetFullHierarchyPath()}");
         }
 
         if (rb == null)
         {
-            Debug.LogError("Rigidbody is missing on the child.");
+            Debug.LogError($"Rigidbody is missing on object: {gameObject.name}, located in the hierarchy: {GetFullHierarchyPath()}");
         }
     }
 
+/// <summary>
+/// Helper method to get the full hierarchy path of the object.
+/// </summary>
+private string GetFullHierarchyPath()
+{
+    string path = gameObject.name;
+    Transform current = transform.parent;
 
+    while (current != null)
+    {
+        path = $"{current.name}/{path}";
+        current = current.parent;
+    }
+
+    return path;
+}
 
 private void OnEnable()
 {

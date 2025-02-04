@@ -8,14 +8,34 @@ public class ParentController : MonoBehaviour
     private Dictionary<Transform, Quaternion> childRotations = new Dictionary<Transform, Quaternion>(); // Rotation offsets
     private Dictionary<Transform, bool> isChildAttached = new Dictionary<Transform, bool>(); // Tracks if a child is attached
 
-    void Start()
+void Start()
+{
+    if (Unity.Netcode.NetworkManager.Singleton != null && Unity.Netcode.NetworkManager.Singleton.IsListening)
     {
-        // Initialize offsets and attach all children
-        foreach (Transform child in children)
-        {
-            AttachChild(child);
-        }
+        InitializeChildren();
     }
+    else if (Unity.Netcode.NetworkManager.Singleton != null)
+    {
+        Debug.LogWarning($"Network is not active. Delaying child attachment for Parent: {gameObject.name}");
+        Unity.Netcode.NetworkManager.Singleton.OnServerStarted += OnNetworkInitialized;
+    }
+}
+
+private void OnNetworkInitialized()
+{
+    Debug.Log($"Network initialized. Attaching children for Parent: {gameObject.name}");
+    Unity.Netcode.NetworkManager.Singleton.OnServerStarted -= OnNetworkInitialized;
+    InitializeChildren();
+}
+
+private void InitializeChildren()
+{
+    foreach (Transform child in children)
+    {
+        AttachChild(child);
+    }
+}
+
 
     void Update()
     {
@@ -29,28 +49,52 @@ public class ParentController : MonoBehaviour
             }
         }
     }
-public void AttachChild(Transform child)
-{
+    
+    public void AttachChild(Transform child)
+    {
+    if (child == null || (isChildAttached.ContainsKey(child) && isChildAttached[child])) return;
+
+    // Ensure the NetworkManager is active before reparenting
+    if (Unity.Netcode.NetworkManager.Singleton != null && !Unity.Netcode.NetworkManager.Singleton.IsListening)
+    {
+        Debug.LogWarning($"Cannot attach {child.name} because the network is not active.");
+        return;
+    }
+
     Debug.Log($"Attaching child {child.name} to parent {gameObject.name}");
 
-    if (child == null || isChildAttached.ContainsKey(child) && isChildAttached[child]) return;
-
+    // Store position and rotation offsets
     childOffsets[child] = transform.InverseTransformPoint(child.position);
     childRotations[child] = Quaternion.Inverse(transform.rotation) * child.rotation;
     isChildAttached[child] = true;
 
-    child.SetParent(transform);
+    // Check if the object has a NetworkObject component
+    var networkObject = child.GetComponent<Unity.Netcode.NetworkObject>();
+    if (networkObject != null)
+    {
+        // Use Netcode for GameObjects method for reparenting
+        networkObject.TrySetParent(transform, true);
+    }
+    else
+    {
+        // Standard Unity reparenting
+        child.SetParent(transform);
+    }
 
-    // Disable gravity and freeze unnecessary constraints
+    // Manage Rigidbody physics settings
     var rb = child.GetComponent<Rigidbody>();
     if (rb != null)
     {
-        rb.useGravity = false; // Disable gravity
-        rb.constraints = RigidbodyConstraints.FreezePosition | RigidbodyConstraints.FreezeRotation;
+        rb.useGravity = false; // Disable gravity to prevent objects from falling
+        rb.velocity = Vector3.zero; // Reset velocity to prevent unintended motion
+        rb.angularVelocity = Vector3.zero; // Reset angular velocity
+
+        // Apply movement constraints to prevent sliding or rotation
+        rb.constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotation;
     }
 
     Debug.Log($"{child.name} attached to {gameObject.name}");
-}
+   }
 
 
 public void DetachChild(Transform child)
@@ -66,14 +110,41 @@ public void DetachChild(Transform child)
     var rb = child.GetComponent<Rigidbody>();
     if (rb != null)
     {
-        rb.constraints = RigidbodyConstraints.None; // Remove all constraints
         rb.useGravity = true; // Enable gravity
+        rb.isKinematic = false; // Ensure physics simulation
         rb.velocity = Vector3.zero; // Reset velocity
         rb.angularVelocity = Vector3.zero; // Reset angular velocity
+
+        // Add drag to reduce further movement
+        rb.drag = 5f; // Linear drag for slowing down
+        rb.angularDrag = 5f; // Angular drag for rotation stabilization
+
+        // Apply constraints to stop movement after settling
+        StartCoroutine(FreezeAfterSettling(rb));
     }
 
+    // Ensure scale is not altered
+    child.localScale = Vector3.one;
     Debug.Log($"{child.name} detached from {gameObject.name}");
 }
+
+private System.Collections.IEnumerator FreezeAfterSettling(Rigidbody rb)
+{
+    yield return new WaitForSeconds(0.5f); // Allow time for settling
+
+    if (rb.velocity.magnitude < 0.1f && rb.angularVelocity.magnitude < 0.1f)
+    {
+        rb.constraints = RigidbodyConstraints.FreezeAll; // Freeze all movement and rotation
+        Debug.Log("Object has settled and is now frozen.");
+    }
+}
+
+
+private void OnCollisionEnter(Collision collision)
+{
+    Debug.Log($"Object {gameObject.name} collided with {collision.gameObject.name}");
+}
+
 
 
 
