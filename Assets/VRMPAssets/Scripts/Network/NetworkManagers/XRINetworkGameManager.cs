@@ -7,6 +7,7 @@ using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine;
 using Unity.Services.Lobbies;
 using UnityEditor;
+using System.Collections;
 
 namespace XRMultiplayer
 {
@@ -522,6 +523,7 @@ namespace XRMultiplayer
                 {
                     connected = NetworkManager.Singleton.StartClient();
                 }
+               
             }
             else
             {
@@ -544,6 +546,8 @@ namespace XRMultiplayer
             return connected;
 
         }
+
+
 
         /// <summary>
         /// Subscribe to lobby update events. This needed to be informed of Lobby changes (name, privacy, etc...).
